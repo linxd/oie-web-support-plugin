@@ -1,8 +1,8 @@
 {
     "schemaVersion": 1,
     "id": "websupport",
-    "name": "Web Support",
-    "description": "Installs the OIE web administrator in the engine's embedded web server together with byte-exact message serialization, JavaScript validation, and web plugin UI serving.",
+    "name": "Web 管理支持",
+    "description": "在引擎的嵌入式 Web 服务器中安装 OIE Web 管理器，同时提供字节精确的消息序列化、JavaScript 验证和 Web 插件 UI 服务。",
     "type": "plugin",
     "ui": [],
     "version": "1.0.5",

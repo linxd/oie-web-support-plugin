@@ -1,66 +1,57 @@
-# OIE Web Support
+# OIE Web 管理支持
 
-The complete [OIE web administrator](https://github.com/gibson9583/oie-web-client),
-shipped as one standard extension so the engine itself needs **no changes**. It
-installs both the browser client and the engine-side APIs used for message trees,
-JavaScript validation, and extension-provided web UIs.
+完整的 [OIE Web 管理器](https://github.com/gibson9583/oie-web-client)，
+作为一个标准扩展发布，引擎本身**无需任何修改**。它同时安装浏览器客户端和引擎侧的 API，
+用于消息树、JavaScript 验证和扩展提供的 Web UI。
 
-## One extension
+## 一个扩展
 
-Each release has one artifact:
+每个发布版本包含一个构建产物：
 
-| Extension | Artifact | What it does |
+| 扩展 | 构建产物 | 功能 |
 |---|---|---|
-| **Web Support** (`websupport`) | `websupport-<version>.zip` | Installs the supporting APIs and deploys `oie-webadmin.war` into this OIE server's embedded Jetty, served at `/oie-webadmin/`. |
+| **Web 管理支持** (`websupport`) | `websupport-<version>.zip` | 安装支持的 API 并将 `oie-webadmin.war` 部署到此 OIE 服务器的嵌入式 Jetty 中，在 `/oie-webadmin/` 路径下提供服务。 |
 
-Install it through the Swing Administrator (or the web client's Extensions page
-when one is already available), then restart OIE. The service plugin copies
-`oie-webadmin.war` to `<OIE_HOME>/webapps/` before Jetty scans web applications.
-Open `https://<host>:8443/oie-webadmin/` after the restart.
+通过 Swing 管理器安装它（或者在已有 Web 客户端时通过其扩展页面安装），然后重启 OIE。
+服务插件会在 Jetty 扫描 Web 应用之前将 `oie-webadmin.war` 复制到 `<OIE_HOME>/webapps/`。
+重启后打开 `https://<host>:8443/oie-webadmin/`。
 
-The same client can still be run with Node.js or Docker. Installing Web Support
-also makes the embedded copy available; it does not prevent those deployment
-models.
+同一个客户端仍然可以使用 Node.js 或 Docker 运行。安装 Web 管理支持也会使嵌入式副本可用；
+它不会阻止那些部署模式。
 
-Uninstalling **Web Support** removes its deployed WAR on the next engine restart
-(the restart that finalizes the uninstall). If the engine is force-killed while
-an uninstall is pending, delete `<OIE_HOME>/webapps/oie-webadmin.war` by hand.
+卸载 **Web 管理支持** 会在下次引擎重启时移除其已部署的 WAR（完成卸载的那次重启）。
+如果在卸载待处理时引擎被强制终止，请手动删除 `<OIE_HOME>/webapps/oie-webadmin.war`。
 
-## What it provides
+## 提供的功能
 
-All endpoints live under `/api/extensions/websupport` and require only an
-authenticated session:
+所有端点位于 `/api/extensions/websupport` 下，仅需认证会话：
 
-| Endpoint | Purpose |
+| 端点 | 用途 |
 |---|---|
-| `POST /datatypes/_serialize?dataType=&props=` | Serializes a message through the engine's **own data type serializers** — output byte-identical to the runtime `msg`/`tmp` — plus the data type's vocabulary descriptions for message-tree annotation. |
-| `POST /javascript/_validate` | Compiles a script with the engine's **Rhino**, returning `{ error: string\|null }` — validation that matches runtime compilation exactly. |
-| `GET /webplugins` | Lists installed, enabled extensions that ship a web UI half (`webadmin/plugin.json`). |
-| `GET /webplugins/{extension}/{path}` | Serves a static file from an extension's `webadmin/` folder, so a plugin's browser UI follows the engine it is installed on. |
+| `POST /datatypes/_serialize?dataType=&props=` | 通过引擎**自身的数据类型序列化器**序列化消息——输出与运行时 `msg`/`tmp` 字节相同——加上数据类型的词汇描述用于消息树注释。 |
+| `POST /javascript/_validate` | 使用引擎的 **Rhino** 编译脚本，返回 `{ error: string\|null }`——与运行时编译完全匹配的验证。 |
+| `GET /webplugins` | 列出已安装、已启用且附带 Web UI 半部分的扩展（`webadmin/plugin.json`）。 |
+| `GET /webplugins/{extension}/{path}` | 从扩展的 `webadmin/` 文件夹提供静态文件，使插件的浏览器 UI 跟随其安装的引擎。 |
 
-The web administrator probes for these endpoints at session start — engine-native
-first (an engine built with them), then this plugin — and degrades gracefully
-(no message trees, no server-side validation, no engine-served plugin UIs) when
-neither is present.
+Web 管理器在会话开始时探测这些端点——优先使用引擎原生端点（内置了这些端点的引擎），
+然后回退到此插件——并在两者都不存在时优雅降级（无消息树、无服务器端验证、无引擎提供的插件 UI）。
 
-## Install — do this first
+## 安装——请先执行此操作
 
-This plugin is the one piece that cannot install itself through the Community
-Store, because the store's own UI is served *by* it. The bootstrap order:
+此插件是唯一无法通过社区商店自行安装的插件，因为商店自身的 UI 就是由它提供的。
+引导顺序：
 
-1. Download `websupport-<version>.zip` from [Releases](../../releases).
-2. In the web administrator: **Extensions → Install** (extension install uses only
-   the engine's core REST API, so it works without this plugin). The classic Swing
-   Administrator works too.
-3. Restart the engine.
+1. 从 [Releases](../../releases) 下载 `websupport-<version>.zip`。
+2. 在 Web 管理器中：**扩展 → 安装**（扩展安装仅使用引擎核心 REST API，因此无需此插件即可工作）。
+   经典 Swing 管理器同样可以。
+3. 重启引擎。
 
-After that, plugin UIs (including the Community Store) light up, and this plugin
-updates itself through the store like any other extension.
+之后，插件 UI（包括社区商店）将亮起，此插件会像其他扩展一样通过商店更新自身。
 
-## Build
+## 构建
 
-Requires an OIE/Mirth Connect installation (or built engine tree) for the engine
-jars and a built web-client WAR. The WAR is mandatory:
+需要 OIE/Mirth Connect 安装（或已构建的引擎树）以获取引擎 jar 包，以及已构建的 Web 客户端 WAR。
+WAR 是必需的：
 
 ```bash
 cd ../oie-web-client
@@ -68,53 +59,40 @@ npm ci
 npm run build:war
 
 cd ../oie-web-support-plugin
-OIE_HOME=/path/to/oie mvn package \
-  -Dwebclient.war=../oie-web-client/web-administrator/dist/oie-webadmin.war
+OIE_HOME=/path/to/oie mvn package   -Dwebclient.war=../oie-web-client/web-administrator/dist/oie-webadmin.war
 
 # target/websupport-<version>.zip
 ```
 
-### Signed build (YubiKey)
+### 签名构建（YubiKey）
 
-Requires a YubiKey holding a code-signing certificate and the OpenSC PKCS#11
-library. One-time setup: copy `yubikey-pkcs11.cfg.example` to
-`yubikey-pkcs11.cfg` and adjust the library path for your system, and place your
-certificate chain in `certchain.pem` at the repo root (both files stay
-untracked).
+需要持有代码签名证书的 YubiKey 和 OpenSC PKCS#11 库。一次性设置：将 `yubikey-pkcs11.cfg.example`
+复制到 `yubikey-pkcs11.cfg` 并根据系统调整库路径，将证书链放在仓库根目录的 `certchain.pem` 中
+（两个文件都不纳入版本控制）。
 
 ```bash
-OIE_HOME=/path/to/oie mvn clean package -Psigning \
-  -Dsigning.storepass=<yubikey-pin> \
-  -Dwebclient.war=/path/to/oie-webadmin.war
+OIE_HOME=/path/to/oie mvn clean package -Psigning   -Dsigning.storepass=<yubikey-pin>   -Dwebclient.war=/path/to/oie-webadmin.war
 ```
 
-Omit `-Dsigning.storepass` to read the PIN from the `YUBIKEY_PIN` environment
-variable instead. Only `websupport-shared.jar` is signed; the WAR is left
-byte-identical to the web client's published release asset so the release
-workflow's digest check still holds. Verify with
-`jarsigner -verify target/websupport-shared.jar`.
+省略 `-Dsigning.storepass` 可从 `YUBIKEY_PIN` 环境变量读取 PIN。
+仅对 `websupport-shared.jar` 签名；WAR 保持与 Web 客户端发布资产字节相同，
+以便发布工作流的摘要检查仍然有效。使用 `jarsigner -verify target/websupport-shared.jar` 验证。
 
-The web-client release workflow publishes `oie-webadmin.war`. The Web Support
-release workflow downloads the release selected by `webclient.version` in
-`pom.xml`, validates it, and records the exact client tag and SHA-256 in its
-release notes. Keep that property equal to the Web Support version while the
-release lines match, or change it when the projects version independently. There
-is no source checkout, arbitrary commit ref, or repository variable to maintain.
+Web 客户端发布工作流发布 `oie-webadmin.war`。Web 管理支持发布工作流下载 `pom.xml` 中
+`webclient.version` 选择的发布版本，验证它，并在发布说明中记录确切的客户端标签和 SHA-256。
+在发布线路匹配时保持该属性与 Web 管理支持版本相等，或在项目独立版本时更改它。
+没有源代码检出、任意提交引用或需要维护的仓库变量。
 
-## Notes
+## 说明
 
-- The vocabulary descriptions (HL7 v2, X12, NCPDP, DICOM) are resolved from the
-  engine's own datatype classes by name at runtime — no compile-time coupling, and
-  a data type that isn't installed simply contributes no descriptions.
-- Static assets are served with the servlet container's MIME table
-  (`ServletContext.getMimeType`), with `text/javascript; charset=utf-8` pinned for
-  `.js`/`.mjs` so ES modules always execute.
-- File serving is confined to each extension's `webadmin/` folder (canonicalized
-  path containment; traversal and symlink escapes are rejected).
-- Web Support installs its WAR with a staged file and atomic replacement where
-  supported. A read-only `webapps/` directory prevents WAR deployment; the APIs
-  still load so the engine can start and the copy failure is logged.
+- 词汇描述（HL7 v2、X12、NCPDP、DICOM）在运行时从引擎自身的数据类型类按名称解析——
+  无编译时耦合，未安装的数据类型只是不贡献描述。
+- 静态资产使用 Servlet 容器的 MIME 表提供服务（`ServletContext.getMimeType`），
+  对 `.js`/`.mjs` 固定为 `text/javascript; charset=utf-8`，确保 ES 模块始终可执行。
+- 文件服务限制在每个扩展的 `webadmin/` 文件夹内（规范化路径包含；遍历和符号链接转义被拒绝）。
+- Web 管理支持在支持的地方使用暂存文件和原子替换安装其 WAR。只读的 `webapps/` 目录会阻止 WAR 部署；
+  API 仍然加载，因此引擎可以启动，复制失败会被记录。
 
-## License
+## 许可证
 
 MPL-2.0
